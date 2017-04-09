@@ -168,6 +168,12 @@
             this.player().on('volumechange', this.onVolumeChange.bind(this));
             this.player().on('fullscreenchange', this.onScreenChange.bind(this));
 
+            // resize
+            var responsiveWave = WaveSurfer.util.debounce(
+                this.onResizeChange.bind(this), 150);
+
+            window.addEventListener('resize', responsiveWave);
+
             // kick things off
             this.startPlayers();
         },
@@ -241,6 +247,7 @@
          */
         initialize: function(opts)
         {
+            console.log(this.player().controlBar.height());
             this.originalHeight = this.player().options_.height;
             var controlBarHeight = this.player().controlBar.height();
             if (this.player().options_.controls === true && controlBarHeight === 0)
@@ -267,6 +274,7 @@
             if (opts.waveformHeight === undefined)
             {
                 opts.height = this.player().height() - controlBarHeight;
+                console.log(opts.height);
             }
             else
             {
@@ -692,7 +700,31 @@
         },
 
         /**
-         * Waveform error.
+         * Resize occured.
+         *
+         * @private
+         */
+        onResizeChange: function()
+        {
+            console.log('resize');
+
+            if (!this.player().paused())
+            {
+                // put video.js player UI in pause mode
+                this.pause();
+                this.player().pause();
+            }
+
+            if (this.surfer !== undefined)
+            {
+                // redraw waveform
+                this.surfer.empty();
+                this.surfer.drawBuffer();
+            }
+        },
+
+        /**
+         * Waveform error occured.
          *
          * @param {string} error - The wavesurfer error.
          * @private
